@@ -1,0 +1,12 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Ви вийшли{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Ви успішно вийшли із системи/h2>
+    <p>Дякуємо за використання Cryptix!</p>
+    <p><a href="{% url 'login' %}">Увійти знову</a></p>
+    <p><a href="{% url 'home' %}">На головну</a></p>
+</div>
+{% endblock %}

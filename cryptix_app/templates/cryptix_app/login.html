@@ -1,0 +1,15 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Вхід{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Вхід</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Увійти</button>
+    </form>
+    <p>Немає акаунту? <a href="{% url 'register' %}">Зареєструйтеся</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Профіль{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Мій профіль</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Зберегти</button>
+    </form>
+</div>
+{% endblock %}
