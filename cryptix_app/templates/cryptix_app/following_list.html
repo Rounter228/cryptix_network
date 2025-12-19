@@ -1,0 +1,20 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Підписки{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Мої підписки ({{ following.count }})</h2>
+    {% for user in following %}
+    <div style="border-bottom: 1px solid #ddd; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+        <strong>{{ user.username }}</strong>
+        <form method="post" action="{% url 'unfollow_user' user.id %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" style="background: #999;">Відписатися</button>
+        </form>
+    </div>
+    {% empty %}
+    <p>Ви ні на кого не підписані. <a href="{% url 'users_list' %}">Знайти користувачів</a></p>
+    {% endfor %}
+</div>
+{% endblock %}

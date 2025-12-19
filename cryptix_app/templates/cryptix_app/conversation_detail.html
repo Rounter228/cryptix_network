@@ -1,0 +1,63 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Чат з {{ other_user.username }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'conversations_list' %}" style="display: inline-block; padding: 8px 16px; background: #e4e6eb; color: #333; text-decoration: none; border-radius: 6px;">← Назад до чатів</a>
+    </div>
+    
+    <h2>Чат з {{ other_user.username }}</h2>
+    
+    <div style="max-height: 400px; overflow-y: auto; margin: 20px 0; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
+        {% for message in chat_messages reversed %}
+        <div class="message-container message-{% if message.sender == user %}right{% else %}left{% endif %}">
+            <div class="message-bubble bubble-{% if message.sender == user %}sender{% else %}receiver{% endif %}">
+                <strong>{{ message.sender.username }}:</strong><br>
+                {{ message.content }}
+                <div style="font-size: 11px; margin-top: 5px; opacity: 0.7;">
+                    {{ message.created_at|date:"d.m.Y H:i" }}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: #666; padding: 20px;">Немає повідомлень. Почніть спілкування!</p>
+        {% endfor %}
+    </div>
+    
+    <form method="post" style="margin-top: 20px;">
+        {% csrf_token %}
+        <textarea name="content" placeholder="Напишіть повідомлення..." rows="3" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; resize: vertical;"></textarea>
+        <button type="submit" style="margin-top: 10px;">Відправити</button>
+    </form>
+</div>
+
+<style>
+    .message-container {
+        margin: 10px 0;
+        clear: both;
+    }
+    .message-right {
+        text-align: right;
+    }
+    .message-left {
+        text-align: left;
+    }
+    .message-bubble {
+        display: inline-block;
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 12px;
+        word-wrap: break-word;
+    }
+    .bubble-sender {
+        background: #1877f2;
+        color: white;
+    }
+    .bubble-receiver {
+        background: #e4e6eb;
+        color: black;
+    }
+</style>
+{% endblock %}

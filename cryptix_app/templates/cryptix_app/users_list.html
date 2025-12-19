@@ -1,0 +1,58 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Пошук користувачів{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Пошук користувачів</h2>
+    <form method="get" style="margin-bottom: 20px;">
+        <input type="text" name="q" placeholder="Пошук за ім'ям..." value="{{ query }}">
+        <button type="submit">Шукати</button>
+    </form>
+    
+    {% for data in users_data %}
+    <div style="border-bottom: 1px solid #ddd; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <strong>{{ data.user.username }}</strong>
+            {% if data.user.first_name %}
+                ({{ data.user.first_name }} {{ data.user.last_name }})
+            {% endif %}
+        </div>
+        <div>
+            {% if data.has_pending_request %}
+                <form method="post" action="{% url 'accept_friend_request' data.user.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background: #42b72a;">Прийняти</button>
+                </form>
+            {% elif data.friendship_status == 'accepted' %}
+                <span style="color: #42b72a;">✓ Друзі</span>
+                <a href="{% url 'start_conversation' data.user.id %}" style="margin-left: 10px;">
+                    <button>Написати</button>
+                </a>
+            {% elif data.friendship_status == 'pending' %}
+                <span style="color: #999;">Запит надіслано</span>
+            {% else %}
+                <form method="post" action="{% url 'send_friend_request' data.user.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit">Додати у друзі</button>
+                </form>
+            {% endif %}
+            
+            {% if data.is_following %}
+                <form method="post" action="{% url 'unfollow_user' data.user.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background: #999;">Відписатися</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'follow_user' data.user.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit">Підписатися</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p>Користувачі не знайдені</p>
+    {% endfor %}
+</div>
+{% endblock %}
