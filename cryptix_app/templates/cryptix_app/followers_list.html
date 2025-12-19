@@ -1,0 +1,16 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Підписники{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Мої підписники ({{ followers.count }})</h2>
+    {% for follower in followers %}
+    <div style="border-bottom: 1px solid #ddd; padding: 15px 0;">
+        <strong>{{ follower.username }}</strong>
+    </div>
+    {% empty %}
+    <p>В вас поки немає підписників</p>
+    {% endfor %}
+</div>
+{% endblock %}

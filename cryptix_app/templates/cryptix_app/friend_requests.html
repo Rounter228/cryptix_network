@@ -1,0 +1,30 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Заявки у друзі{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Заявки у друзі ({{ requests.count }})</h2>
+    {% for req in requests %}
+    <div style="border-bottom: 1px solid #ddd; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <strong>{{ req.from_user.username }}</strong>
+            <br>
+            <small style="color: #666;">{{ req.created_at|date:"d.m.Y H:i" }}</small>
+        </div>
+        <div>
+            <form method="post" action="{% url 'accept_friend_request' req.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" style="background: #42b72a;">Прийняти</button>
+            </form>
+            <form method="post" action="{% url 'reject_friend_request' req.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" style="background: #f44336;">Відхилити</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <p>Немає нових заявок</p>
+    {% endfor %}
+</div>
+{% endblock %}

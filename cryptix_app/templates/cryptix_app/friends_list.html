@@ -1,0 +1,25 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Мої друзі{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Мої друзі ({{ friends.count }})</h2>
+    {% for friend in friends %}
+    <div style="border-bottom: 1px solid #ddd; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+        <strong>{{ friend.username }}</strong>
+        <div>
+            <a href="{% url 'start_conversation' friend.id %}">
+                <button>Написати</button>
+            </a>
+            <form method="post" action="{% url 'remove_friend' friend.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" style="background: #f44336;">Видалити</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <p>В вас поки немає друзів. <a href="{% url 'users_list' %}">Знайти друзів</a></p>
+    {% endfor %}
+</div>
+{% endblock %}
