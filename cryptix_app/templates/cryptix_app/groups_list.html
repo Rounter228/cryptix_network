@@ -1,0 +1,59 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Групи{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Групи</h2>
+        <a href="{% url 'group_create' %}">
+            <button>+ Створити групу</button>
+        </a>
+    </div>
+    
+    <h3>Мої групи ({{ my_groups.count }})</h3>
+    {% for group in my_groups %}
+    <div style="border-bottom: 1px solid #ddd; padding: 15px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                {% if group.avatar %}
+                <img src="{{ group.avatar.url }}" alt="{{ group.name }}" style="width: 50px; height: 50px; border-radius: 8px; margin-right: 10px; vertical-align: middle;">
+                {% endif %}
+                <a href="{% url 'group_detail' group.id %}" style="font-weight: bold; font-size: 18px;">{{ group.name }}</a>
+                <p style="color: #666; margin-top: 5px;">{{ group.description|truncatewords:15 }}</p>
+                <small style="color: #999;">{{ group.members_count }} учасників</small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>Ви ще не приєдналися до жодної групи.</p>
+    {% endfor %}
+    
+    <h3 style="margin-top: 30px;">Всі групи</h3>
+    {% for group in all_groups %}
+        {% if group not in my_groups %}
+        <div style="border-bottom: 1px solid #ddd; padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    {% if group.avatar %}
+                    <img src="{{ group.avatar.url }}" alt="{{ group.name }}" style="width: 50px; height: 50px; border-radius: 8px; margin-right: 10px; vertical-align: middle;">
+                    {% endif %}
+                    <a href="{% url 'group_detail' group.id %}" style="font-weight: bold; font-size: 18px;">{{ group.name }}</a>
+                    {% if group.is_private %}
+                        <span style="background: #999; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 5px;">Приватна</span>
+                    {% endif %}
+                    <p style="color: #666; margin-top: 5px;">{{ group.description|truncatewords:15 }}</p>
+                    <small style="color: #999;">{{ group.members_count }} учасників</small>
+                </div>
+                {% if not group.is_private %}
+                <form method="post" action="{% url 'group_join' group.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Приєднатися</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

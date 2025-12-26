@@ -5,8 +5,8 @@ from django.contrib.auth.models import User
 from django.db.models import Q, Count
 from django.contrib import messages
 from django.utils import timezone
-from .forms import RegisterForm, ProfileUpdateForm
-from .models import Profile, Friendship, Follow, Conversation, Message
+from .forms import RegisterForm, UserUpdateForm, ProfileUpdateForm
+from .models import Friendship, Follow, Conversation, Message, Group, GroupMembership, GroupPost, GroupPostComment, Profile
 
 
 def register(request):
@@ -21,19 +21,29 @@ def register(request):
         form = RegisterForm()
     return render(request, 'cryptix_app/register.html', {'form': form})
 
+
 @login_required
 def profile(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     
     if request.method == 'POST':
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Профіль оновлено!')
             return redirect('profile')
     else:
-        form = ProfileUpdateForm(instance=profile)
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=profile)
     
-    return render(request, 'cryptix_app/profile.html', {'form': form})
+    return render(request, 'cryptix_app/profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form
+    })
+
 
 @login_required
 def home(request):
@@ -262,3 +272,186 @@ def start_conversation(request, user_id):
     conversation.participants.add(request.user, other_user)
     
     return redirect('conversation_detail', conversation_id=conversation.id)
+
+
+@login_required
+def groups_list(request):
+    all_groups = Group.objects.all().prefetch_related('members')
+    my_groups = request.user.joined_groups.all()
+    
+    return render(request, 'cryptix_app/groups_list.html', {
+        'all_groups': all_groups,
+        'my_groups': my_groups
+    })
+
+
+@login_required
+def group_create(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description', '')
+        is_private = request.POST.get('is_private') == 'on'
+        avatar = request.FILES.get('avatar')
+        
+        group = Group.objects.create(
+            name=name,
+            description=description,
+            is_private=is_private,
+            avatar=avatar,
+            creator=request.user
+        )
+        
+        GroupMembership.objects.create(
+            user=request.user,
+            group=group,
+            role='admin'
+        )
+        
+        messages.success(request, f'Група "{name}" створена!')
+        return redirect('group_detail', group_id=group.id)
+    
+    return render(request, 'cryptix_app/group_create.html')
+
+
+@login_required
+def group_detail(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    is_member = group.members.filter(id=request.user.id).exists()
+    
+    if group.is_private and not is_member:
+        messages.error(request, 'Це приватна група')
+        return redirect('groups_list')
+    
+    posts = group.posts.all().select_related('author').prefetch_related('comments')
+    membership = None
+    
+    if is_member:
+        membership = GroupMembership.objects.get(user=request.user, group=group)
+    
+    # -- створення постів
+    if request.method == 'POST' and is_member:
+        if 'post_content' in request.POST:
+            content = request.POST.get('post_content', '').strip()
+            image = request.FILES.get('post_image')
+            if content:
+                GroupPost.objects.create(
+                    group=group,
+                    author=request.user,
+                    content=content,
+                    image=image
+                )
+                messages.success(request, 'Пост створено!')
+                return redirect('group_detail', group_id=group.id)
+    
+    return render(request, 'cryptix_app/group_detail.html', {
+        'group': group,
+        'posts': posts,
+        'is_member': is_member,
+        'membership': membership
+    })
+
+
+@login_required
+def group_join(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    
+    if group.is_private:
+        messages.error(request, 'Неможливо приєднатися до приватної групи')
+        return redirect('groups_list')
+    
+    GroupMembership.objects.get_or_create(
+        user=request.user,
+        group=group,
+        defaults={'role': 'member'}
+    )
+    
+    messages.success(request, f'Ви приєдналися до групи "{group.name}"')
+    return redirect('group_detail', group_id=group.id)
+
+
+@login_required
+def group_leave(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    
+    if group.creator == request.user:
+        messages.error(request, 'Створювач не може покинути групу')
+        return redirect('group_detail', group_id=group.id)
+    
+    GroupMembership.objects.filter(user=request.user, group=group).delete()
+    messages.success(request, f'Ви покинули групу "{group.name}"')
+    return redirect('groups_list')
+
+
+@login_required
+def group_post_comment(request, post_id):
+    post = get_object_or_404(GroupPost, id=post_id)
+    
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if content:
+            GroupPostComment.objects.create(
+                post=post,
+                author=request.user,
+                content=content
+            )
+            messages.success(request, 'Коментар додано!')
+    
+    return redirect('group_detail', group_id=post.group.id)
+
+
+@login_required
+def group_delete(request, group_id):
+    group = get_object_or_404(Group, id=group_id, creator=request.user)
+    group.delete()
+    messages.success(request, 'Групу видалено')
+    return redirect('groups_list')
+
+
+# -- профілі
+
+@login_required
+def user_profile_view(request, username):
+    profile_user = get_object_or_404(User, username=username)
+    profile, created = Profile.objects.get_or_create(user=profile_user)
+    
+    is_friend = False
+    friendship_status = None
+    is_following = False
+    
+    if request.user != profile_user:
+        friendship = Friendship.objects.filter(
+            Q(from_user=request.user, to_user=profile_user) |
+            Q(from_user=profile_user, to_user=request.user)
+        ).first()
+        
+        if friendship:
+            if friendship.status == 'accepted':
+                is_friend = True
+            else:
+                friendship_status = friendship.status
+        
+        is_following = Follow.objects.filter(
+            follower=request.user,
+            following=profile_user
+        ).exists()
+    
+    friends_count = Friendship.objects.filter(
+        Q(from_user=profile_user, status='accepted') |
+        Q(to_user=profile_user, status='accepted')
+    ).count()
+    
+    followers_count = Follow.objects.filter(following=profile_user).count()
+    following_count = Follow.objects.filter(follower=profile_user).count()
+    groups_count = profile_user.joined_groups.count()
+    
+    return render(request, 'cryptix_app/user_profile.html', {
+        'profile_user': profile_user,
+        'profile': profile,
+        'is_friend': is_friend,
+        'friendship_status': friendship_status,
+        'is_following': is_following,
+        'friends_count': friends_count,
+        'followers_count': followers_count,
+        'following_count': following_count,
+        'groups_count': groups_count,
+    })

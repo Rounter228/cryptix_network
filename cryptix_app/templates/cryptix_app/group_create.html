@@ -1,0 +1,31 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Створити групу{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Створити нову групу</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <label>Назва групи:</label>
+        <input type="text" name="name" required>
+        
+        <label>Опис:</label>
+        <textarea name="description" rows="4"></textarea>
+        
+        <label>Аватар групи:</label>
+        <input type="file" name="avatar" accept="image/*">
+        
+        <label style="display: flex; align-items: center; margin: 15px 0;">
+            <input type="checkbox" name="is_private" style="width: auto; margin-right: 10px;">
+            Приватна група
+        </label>
+        
+        <button type="submit">Створити</button>
+        <a href="{% url 'groups_list' %}">
+            <button type="button" style="background: #999; margin-left: 10px;">Скасувати</button>
+        </a>
+    </form>
+</div>
+{% endblock %}

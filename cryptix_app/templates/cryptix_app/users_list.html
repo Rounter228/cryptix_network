@@ -13,9 +13,9 @@
     {% for data in users_data %}
     <div style="border-bottom: 1px solid #ddd; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <strong>{{ data.user.username }}</strong>
+            <a href="{% url 'user_profile_view' data.user.username %}" style="font-weight: bold; font-size: 16px;">{{ data.user.username }}</a>
             {% if data.user.first_name %}
-                ({{ data.user.first_name }} {{ data.user.last_name }})
+                <span style="color: #666;">({{ data.user.first_name }} {{ data.user.last_name }})</span>
             {% endif %}
         </div>
         <div>
@@ -34,7 +34,7 @@
             {% else %}
                 <form method="post" action="{% url 'send_friend_request' data.user.id %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit">Додати у друзі</button>
+                    <button type="submit">Додати в друзі</button>
                 </form>
             {% endif %}
             
@@ -52,7 +52,7 @@
         </div>
     </div>
     {% empty %}
-    <p>Користувачі не знайдені</p>
+    <p>Користувачів не знайдено</p>
     {% endfor %}
 </div>
 {% endblock %}
