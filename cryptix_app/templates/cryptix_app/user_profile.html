@@ -1,0 +1,83 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}{{ profile_user.username }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div style="flex: 1;">
+            {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="{{ profile_user.username }}" style="width: 120px; height: 120px; border-radius: 50%; margin-right: 20px; float: left;">
+            {% else %}
+            <div style="width: 120px; height: 120px; border-radius: 50%; background: #1877f2; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: bold; margin-right: 20px; float: left;">
+                {{ profile_user.username|first|upper }}
+            </div>
+            {% endif %}
+            
+            <h2>{{ profile_user.first_name }} {{ profile_user.last_name }}</h2>
+            <p style="color: #666;">@{{ profile_user.username }}</p>
+            
+            {% if profile.bio %}
+            <p style="margin-top: 10px;">{{ profile.bio }}</p>
+            {% endif %}
+            
+            <div style="margin-top: 15px; color: #666;">
+                {% if profile.location %}
+                <p>📍 {{ profile.location }}</p>
+                {% endif %}
+                {% if profile.website %}
+                <p>🌐 <a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a></p>
+                {% endif %}
+                {% if profile.birth_date %}
+                <p>🎂 {{ profile.birth_date|date:"d.m.Y" }}</p>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 15px; display: flex; gap: 20px;">
+                <div><strong>{{ friends_count }}</strong> друзів</div>
+                <div><strong>{{ followers_count }}</strong> підписників</div>
+                <div><strong>{{ following_count }}</strong> підписок</div>
+                <div><strong>{{ groups_count }}</strong> груп</div>
+            </div>
+        </div>
+        
+        {% if profile_user != user %}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% if is_friend %}
+                <span style="color: #42b72a; padding: 10px;">✓ Ви друзі</span>
+                <a href="{% url 'start_conversation' profile_user.id %}">
+                    <button>Написати</button>
+                </a>
+                <form method="post" action="{% url 'remove_friend' profile_user.id %}">
+                    {% csrf_token %}
+                    <button type="submit" style="background: #f44336;">Видалити з друзів</button>
+                </form>
+            {% elif friendship_status == 'pending' %}
+                <span style="color: #999;">Запит надіслано</span>
+            {% else %}
+                <form method="post" action="{% url 'send_friend_request' profile_user.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Додати в друзі</button>
+                </form>
+            {% endif %}
+            
+            {% if is_following %}
+                <form method="post" action="{% url 'unfollow_user' profile_user.id %}">
+                    {% csrf_token %}
+                    <button type="submit" style="background: #999;">Відписатися</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'follow_user' profile_user.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Підписатися</button>
+                </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <a href="{% url 'profile' %}">
+            <button>Редагувати профіль</button>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

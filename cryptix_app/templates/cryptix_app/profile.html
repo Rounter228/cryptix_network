@@ -1,14 +1,22 @@
 {% extends 'cryptix_app/base.html' %}
 
-{% block title %}Профіль{% endblock %}
+{% block title %}Редагувати профіль{% endblock %}
 
 {% block content %}
 <div class="card">
-    <h2>Мій профіль</h2>
-    <form method="post" enctype="multipart/form-data">
+    <h2>Редагувати профіль</h2>
+    <a href="{% url 'user_profile_view' user.username %}">Переглянути мій профіль</a>
+    
+    <form method="post" enctype="multipart/form-data" style="margin-top: 20px;">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Зберегти</button>
+        
+        <h3>Основна інформація</h3>
+        {{ user_form.as_p }}
+        
+        <h3 style="margin-top: 20px;">Додаткова інформація</h3>
+        {{ profile_form.as_p }}
+        
+        <button type="submit">Зберегти зміни</button>
     </form>
 </div>
 {% endblock %}

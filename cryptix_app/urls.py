@@ -29,4 +29,16 @@ urlpatterns = [
     path('conversations/', views.conversations_list, name='conversations_list'),
     path('conversation/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
     path('start-conversation/<int:user_id>/', views.start_conversation, name='start_conversation'),
+    
+    # групи
+    path('groups/', views.groups_list, name='groups_list'),
+    path('group/create/', views.group_create, name='group_create'),
+    path('group/<int:group_id>/', views.group_detail, name='group_detail'),
+    path('group/<int:group_id>/join/', views.group_join, name='group_join'),
+    path('group/<int:group_id>/leave/', views.group_leave, name='group_leave'),
+    path('group/<int:group_id>/delete/', views.group_delete, name='group_delete'),
+    path('post/<int:post_id>/comment/', views.group_post_comment, name='group_post_comment'),
+    
+    # профілі користувачів
+    path('user/<str:username>/', views.user_profile_view, name='user_profile_view'),
 ]
