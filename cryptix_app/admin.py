@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Friendship, Follow, Conversation, Message, Group, GroupMembership, GroupPost, GroupPostComment
+from .models import (Friendship, Follow, Conversation, Message, Group, 
+                     GroupMembership, GroupPost, GroupPostComment, Notification, Review)
 
 @admin.register(Friendship)
 class FriendshipAdmin(admin.ModelAdmin):
@@ -13,7 +14,6 @@ class FollowAdmin(admin.ModelAdmin):
 @admin.register(Conversation)
 class ConversationAdmin(admin.ModelAdmin):
     list_display = ['id', 'created_at', 'updated_at']
-    filter_horizontal = ['participants']
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
@@ -39,3 +39,15 @@ class GroupPostAdmin(admin.ModelAdmin):
 class GroupPostCommentAdmin(admin.ModelAdmin):
     list_display = ['author', 'post', 'content', 'created_at']
     list_filter = ['created_at']
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['recipient', 'sender', 'notification_type', 'text', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'created_at']
+    search_fields = ['text', 'recipient__username', 'sender__username']
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ['reviewer', 'reviewed_user', 'rating', 'created_at']
+    list_filter = ['rating', 'created_at']
+    search_fields = ['reviewer__username', 'reviewed_user__username', 'comment']
