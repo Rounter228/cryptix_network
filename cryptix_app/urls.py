@@ -41,4 +41,12 @@ urlpatterns = [
     
     # профілі користувачів
     path('user/<str:username>/', views.user_profile_view, name='user_profile_view'),
+
+    # сповіщення
+    path('notifications/', views.notifications_list, name='notifications_list'),
+    path('notification/<int:notification_id>/delete/', views.notification_delete, name='notification_delete'),
+    
+    # відгуки
+    path('review/<str:username>/', views.leave_review, name='leave_review'),
+    path('review/<int:review_id>/delete/', views.delete_review, name='delete_review'),
 ]

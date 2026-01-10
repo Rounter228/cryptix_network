@@ -6,7 +6,8 @@ from django.db.models import Q, Count
 from django.contrib import messages
 from django.utils import timezone
 from .forms import RegisterForm, UserUpdateForm, ProfileUpdateForm
-from .models import Friendship, Follow, Conversation, Message, Group, GroupMembership, GroupPost, GroupPostComment, Profile
+from .models import Profile, Friendship, Follow, Conversation, Message, Group, GroupMembership, GroupPost, GroupPostComment, Notification, Review
+from .utils import *
 
 
 def register(request):
@@ -90,7 +91,7 @@ def send_friend_request(request, user_id):
     to_user = get_object_or_404(User, id=user_id)
     
     if to_user == request.user:
-        messages.error(request, 'Ви не можете надіслати запит самому собі')
+        messages.error(request, 'Ви не можете відправити запит самому собі')
         return redirect('users_list')
     
     friendship, created = Friendship.objects.get_or_create(
@@ -100,9 +101,10 @@ def send_friend_request(request, user_id):
     )
     
     if created:
-        messages.success(request, f'Запит дружби надіслано користувачеві {to_user.username}')
+        notify_friend_request(request.user, to_user)
+        messages.success(request, f'Запит дружби надіслано користувачу {to_user.username}')
     else:
-        messages.info(request, 'Запит вже було надіслано')
+        messages.info(request, 'Запит вже був надісланий')
     
     return redirect('users_list')
 
@@ -112,6 +114,7 @@ def accept_friend_request(request, friendship_id):
     friendship = get_object_or_404(Friendship, id=friendship_id, to_user=request.user)
     friendship.status = 'accepted'
     friendship.save()
+    notify_friend_accept(friendship.from_user, request.user)
     messages.success(request, f'Ви тепер друзі з {friendship.from_user.username}')
     return redirect('friend_requests')
 
@@ -242,6 +245,7 @@ def conversation_detail(request, conversation_id):
             )
             conversation.updated_at = timezone.now()
             conversation.save()
+            notify_new_message(request.user, other_user, conversation.id)
             return redirect('conversation_detail', conversation_id=conversation.id)
     
     return render(request, 'cryptix_app/conversation_detail.html', {
@@ -328,7 +332,6 @@ def group_detail(request, group_id):
     if is_member:
         membership = GroupMembership.objects.get(user=request.user, group=group)
     
-    # -- створення постів
     if request.method == 'POST' and is_member:
         if 'post_content' in request.POST:
             content = request.POST.get('post_content', '').strip()
@@ -340,6 +343,7 @@ def group_detail(request, group_id):
                     content=content,
                     image=image
                 )
+                notify_group_post(group, request.user)
                 messages.success(request, 'Пост створено!')
                 return redirect('group_detail', group_id=group.id)
     
@@ -394,6 +398,7 @@ def group_post_comment(request, post_id):
                 author=request.user,
                 content=content
             )
+            notify_new_comment(post, request.user)
             messages.success(request, 'Коментар додано!')
     
     return redirect('group_detail', group_id=post.group.id)
@@ -455,3 +460,66 @@ def user_profile_view(request, username):
         'following_count': following_count,
         'groups_count': groups_count,
     })
+
+
+# -- сповіщення
+@login_required
+def notifications_list(request):
+    notifications = request.user.notifications.all()
+    unread_count = notifications.filter(is_read=False).count()
+    
+    notifications.filter(is_read=False).update(is_read=True)
+    
+    return render(request, 'cryptix_app/notifications_list.html', {
+        'notifications': notifications,
+        'unread_count': unread_count
+    })
+
+
+@login_required
+def notification_delete(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification.delete()
+    messages.success(request, 'Сповіщення видалено')
+    return redirect('notifications_list')
+
+
+# -- відгуки і рейтинг
+@login_required
+def leave_review(request, username):
+    reviewed_user = get_object_or_404(User, username=username)
+    
+    if reviewed_user == request.user:
+        messages.error(request, 'Ви не можете залишити відгук самому собі')
+        return redirect('user_profile_view', username=username)
+    
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment', '').strip()
+        
+        if rating and comment:
+            review, created = Review.objects.update_or_create(
+                reviewer=request.user,
+                reviewed_user=reviewed_user,
+                defaults={
+                    'rating': int(rating),
+                    'comment': comment
+                }
+            )
+            
+            if created:
+                notify_new_review(request.user, reviewed_user, rating)
+            
+            messages.success(request, 'Відгук залишено!' if created else 'Відгук оновлено!')
+        else:
+            messages.error(request, 'Заповніть всі поля')
+    
+    return redirect('user_profile_view', username=username)
+
+
+@login_required
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, reviewer=request.user)
+    review.delete()
+    messages.success(request, 'Відгук видалено')
+    return redirect('user_profile_view', username=review.reviewed_user.username)

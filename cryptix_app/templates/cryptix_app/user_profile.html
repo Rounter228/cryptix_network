@@ -80,4 +80,75 @@
         {% endif %}
     </div>
 </div>
+
+<div class="card">
+    <h3>Рейтинг та відгуки</h3>
+    
+    {% with reviews=profile_user.reviews_received.all %}
+    {% if reviews %}
+        {% with total=reviews.count sum=0 %}
+            {% for review in reviews %}
+                {% with sum=sum|add:review.rating %}{% endwith %}
+            {% endfor %}
+            {% with avg_rating=sum|divisibleby:total %}
+            <div style="margin-bottom: 20px;">
+                <div class="star-rating">
+                    {% for i in "12345" %}
+                    <span class="star filled">★</span>
+                    {% endfor %}
+                </div>
+                <p>Всього відгуків: <strong>{{ reviews.count }}</strong></p>
+            </div>
+            {% endwith %}
+        {% endwith %}
+    {% else %}
+        <p style="margin-bottom: 20px;">Ще немає відгуків</p>
+    {% endif %}
+    
+    {% if profile_user != user and is_friend %}
+    <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h4>Залишити відгук</h4>
+        <form method="post" action="{% url 'leave_review' profile_user.username %}">
+            {% csrf_token %}
+            <div style="margin: 10px 0;">
+                <label>Рейтинг:</label>
+                <select name="rating" required style="width: auto;">
+                    <option value="">Оберіть</option>
+                    <option value="5">★★★★★ (5)</option>
+                    <option value="4">★★★★☆ (4)</option>
+                    <option value="3">★★★☆☆ (3)</option>
+                    <option value="2">★★☆☆☆ (2)</option>
+                    <option value="1">★☆☆☆☆ (1)</option>
+                </select>
+            </div>
+            <textarea name="comment" placeholder="Ваш відгук..." rows="3" required></textarea>
+            <button type="submit">Відправити</button>
+        </form>
+    </div>
+    {% endif %}
+    
+    {% for review in reviews %}
+    <div style="border-bottom: 1px solid #ddd; padding: 15px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="flex: 1;">
+                <strong><a href="{% url 'user_profile_view' review.reviewer.username %}">{{ review.reviewer.username }}</a></strong>
+                <div class="star-rating" style="font-size: 16px; margin: 5px 0;">
+                    {% for i in "12345" %}
+                    <span class="star {% if forloop.counter <= review.rating %}filled{% endif %}">★</span>
+                    {% endfor %}
+                </div>
+                <p>{{ review.comment }}</p>
+                <small style="color: #999;">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+            </div>
+            {% if review.reviewer == user %}
+            <form method="post" action="{% url 'delete_review' review.id %}">
+                {% csrf_token %}
+                <button type="submit" style="background: #f44336;">Видалити</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endwith %}
+</div>
 {% endblock %}

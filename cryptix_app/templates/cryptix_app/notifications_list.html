@@ -1,0 +1,49 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Сповіщення{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Сповіщення</h2>
+    
+    {% for notification in notifications %}
+    <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div style="flex: 1;">
+                {% if notification.sender %}
+                <strong>{{ notification.sender.username }}</strong><br>
+                {% endif %}
+                <p>{{ notification.text }}</p>
+                <small style="color: #999;">{{ notification.created_at|date:"d.m.Y H:i" }}</small>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                {% if notification.link %}
+                <a href="{{ notification.link }}">
+                    <button>Переглянути</button>
+                </a>
+                {% endif %}
+                <form method="post" action="{% url 'notification_delete' notification.id %}">
+                    {% csrf_token %}
+                    <button type="submit" style="background: #999;">Видалити</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>Немає сповіщень</p>
+    {% endfor %}
+</div>
+
+<style>
+    .notification-item {
+        border-bottom: 1px solid #ddd;
+        padding: 15px 0;
+    }
+    .notification-item.unread {
+        background: #f0f8ff;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}

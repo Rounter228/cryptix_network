@@ -24,9 +24,9 @@ class Friendship(models.Model):
     REJECTED = 'rejected'
     
     STATUS_CHOICES = [
-        (PENDING, 'В ожидании'),
-        (ACCEPTED, 'Принято'),
-        (REJECTED, 'Отклонено'),
+        (PENDING, 'В очікуванні'),
+        (ACCEPTED, 'Прийнято'),
+        (REJECTED, 'Відхилено'),
     ]
     
     from_user = models.ForeignKey(User, related_name='sent_requests', on_delete=models.CASCADE)
@@ -161,3 +161,55 @@ class GroupPostComment(models.Model):
     
     def __str__(self):
         return f'{self.author.username}: {self.content[:30]}'
+
+
+# -- сповіщення --
+class Notification(models.Model):
+    FRIEND_REQUEST = 'friend_request'
+    FRIEND_ACCEPT = 'friend_accept'
+    MESSAGE = 'message'
+    GROUP_INVITE = 'group_invite'
+    GROUP_POST = 'group_post'
+    COMMENT = 'comment'
+    REVIEW = 'review'
+    
+    TYPE_CHOICES = [
+        (FRIEND_REQUEST, 'Запит у друзі'),
+        (FRIEND_ACCEPT, 'Прийнято запит'),
+        (MESSAGE, 'Нове повідомлення'),
+        (GROUP_INVITE, 'Запрошення в групу'),
+        (GROUP_POST, 'Новий пост в групі'),
+        (COMMENT, 'Новий коментар'),
+        (REVIEW, 'Новий відгук'),
+    ]
+    
+    recipient = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, related_name='sent_notifications', on_delete=models.CASCADE, null=True, blank=True)
+    notification_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    text = models.TextField()
+    link = models.CharField(max_length=200, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.recipient.username}: {self.text[:30]}'
+
+
+# -- рейтинг --
+class Review(models.Model):
+    reviewer = models.ForeignKey(User, related_name='reviews_given', on_delete=models.CASCADE)
+    reviewed_user = models.ForeignKey(User, related_name='reviews_received', on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('reviewer', 'reviewed_user')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.reviewer.username} → {self.reviewed_user.username}: {self.rating}★'
