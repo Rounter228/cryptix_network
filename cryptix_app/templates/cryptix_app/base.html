@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Cryptix{% endblock %}</title>
+    <title>{% block title %}Cryptix - Соціальна мережа{% endblock %}</title>
     <style>
         * { 
             margin: 0; 
@@ -12,148 +13,608 @@
         }
         
         body { 
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            min-height: 100vh;
+            line-height: 1.6;
         }
         
-        nav { 
-            background: #fff;
-            padding: 15px 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+        /* Шапка сайту */
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
-        nav a { 
-            margin-right: 20px;
-            text-decoration: none; 
-            color: #1877f2;
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Верхня частина хедера з логотипом */
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .logo-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+        
+        .logo-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+        }
+        
+        .logo-text {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            color: white;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .user-name {
+            color: #cbd5e1;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .user-name a {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .user-name a:hover {
+            color: #60a5fa;
+        }
+        
+        /* Навігація */
+        .nav-menu {
+            display: flex;
+            gap: 4px;
+            padding: 12px 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .nav-menu::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            background: rgba(51, 65, 85, 0.4);
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
             position: relative;
         }
         
-        nav a:hover {
-            text-decoration: underline;
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: #fff;
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #fff;
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .nav-item .icon {
+            font-size: 18px;
+        }
+        
+        .nav-item.logout {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            margin-left: auto;
+        }
+        
+        .nav-item.logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fecaca;
         }
         
         .notification-badge {
-            background: #f44336;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
+            border-radius: 10px;
+            padding: 2px 7px;
             font-size: 11px;
-            position: absolute;
-            top: -8px;
-            right: -10px;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
         }
         
-        .container { 
-            max-width: 900px; 
-            margin: 0 auto; 
-            padding: 20px;
+        /* Основний контейнер */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
         }
         
-        .card { 
-            background: #fff; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        /* Карточки */
+        .card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-radius: 16px;
+            padding: 24px;
             margin-bottom: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
         
-        button, input[type="submit"] { 
-            background: #1877f2;
-            color: #fff; 
-            padding: 10px 20px; 
-            border: none; 
-            border-radius: 6px; 
+        .card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .card h2, .card h3 {
+            color: #f1f5f9;
+            margin-bottom: 16px;
+        }
+        
+        .card p, .card li, .card span, .card div {
+            color: #cbd5e1;
+        }
+        
+        .card a {
+            color: #3b82f6;
+        }
+        
+        .card a:hover {
+            color: #60a5fa;
+        }
+        
+        /* Кнопки */
+        button, input[type="submit"], .btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 11px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        button:hover, input[type="submit"]:hover, .btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        button:active, input[type="submit"]:active, .btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Форми */
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 10px 0;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1.5px solid rgba(148, 163, 184, 0.2);
+            border-radius: 10px;
+            color: #f1f5f9;
             font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
         }
         
-        button:hover, input[type="submit"]:hover {
-            background: #166fe5;
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
-        input, textarea, select { 
-            width: 100%; 
-            padding: 10px; 
-            margin: 10px 0; 
-            border: 1px solid #ddd; 
-            border-radius: 6px;
-            font-size: 14px;
+        input::placeholder, textarea::placeholder {
+            color: #64748b;
         }
         
-        h1, h2, h3 {
-            margin-bottom: 15px;
-            color: #333;
+        /* Заголовки */
+        h1 {
+            font-size: 32px;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            font-weight: 700;
         }
         
+        h2 {
+            font-size: 24px;
+            color: #3b82f6;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        
+        h3 {
+            font-size: 20px;
+            color: #cbd5e1;
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+        
+        /* Посилання */
+        a {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        a:hover {
+            color: #60a5fa;
+        }
+        
+        /* Повідомлення */
         .messages {
             list-style: none;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         
         .messages li {
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 4px solid;
+            animation: slideIn 0.4s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
         
         .messages .success {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border-left-color: #22c55e;
         }
         
         .messages .error {
-            background: #f8d7da;
-            color: #721c24;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border-left-color: #ef4444;
         }
         
         .messages .info {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border-left-color: #3b82f6;
         }
         
+        /* Лайки */
+        .like-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #64748b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .like-button:hover {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .like-button.liked {
+            color: #3b82f6;
+        }
+        
+        /* Коментарі */
+        .comment-item {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 14px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 3px solid rgba(59, 130, 246, 0.3);
+            color: #cbd5e1;
+        }
+        
+        /* Сповіщення */
+        .notification-item {
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+        }
+        
+        .notification-item.unread {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        /* Закріплені новини */
+        .pinned-news {
+            border-left: 4px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        /* Роздільники */
+        hr {
+            border: none;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+            margin: 24px 0;
+        }
+        
+        /* Рейтинг зірками */
         .star-rating {
             font-size: 24px;
-            color: #ddd;
+            color: #475569;
             cursor: pointer;
         }
         
         .star-rating .star {
             display: inline-block;
-            margin: 0 2px;
+            margin: 0 3px;
+            transition: color 0.2s;
         }
         
         .star-rating .star.filled {
-            color: #ffc107;
+            color: #f59e0b;
+        }
+        
+        /* Додаткові стилі для кнопок */
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b, #475569);
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #475569, #334155);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+        
+        /* Зображення */
+        img {
+            max-width: 100%;
+            border-radius: 12px;
+        }
+        
+        /* Скролбар */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+        
+        /* Адаптивність */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            
+            .logo-img {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .logo-text {
+                font-size: 22px;
+            }
+            
+            .nav-menu {
+                flex-wrap: wrap;
+            }
+            
+            .nav-item {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            
+            .main-container {
+                padding: 20px 15px;
+            }
+            
+            .card {
+                padding: 18px;
+            }
+            
+            h1 {
+                font-size: 26px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+        }
+        
+        /* Auth pages special styling */
+        .auth-container {
+            max-width: 450px;
+            margin: 60px auto;
+        }
+        
+        .auth-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="{% url 'home' %}"><strong>Cryptix</strong></a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'users_list' %}">Користувачі</a>
-            <a href="{% url 'friends_list' %}">Друзі</a>
-            <a href="{% url 'friend_requests' %}">Заявки</a>
-            <a href="{% url 'conversations_list' %}">Повідомлення</a>
-            <a href="{% url 'groups_list' %}">Групи</a>
-            <a href="{% url 'notifications_list' %}" style="position: relative;">
-            <a href="{% url 'notifications_list' %}">Сповіщення</a>
-            </a>
-            <a href="{% url 'profile' %}">Профіль</a>
-            <a href="{% url 'logout' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Вийти</a>
-            <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
-                {% csrf_token %}
-            </form>
-            <span style="float: right;">Привіт, <a href="{% url 'user_profile_view' user.username %}">{{ user.username }}</a>!</span>
-        {% else %}
-            <a href="{% url 'login' %}">Увійти</a>
-            <a href="{% url 'register' %}">Реєстрація</a>
-        {% endif %}
-    </nav>
+    <header class="header">
+        <div class="header-container">
+            <!-- Верхня частина з логотипом -->
+            <div class="header-top">
+                <a href="{% url 'home' %}" class="logo-section">
+                    <img src="/media/logo.png" alt="Cryptix" class="logo-img">
+                    <div class="logo-text">Cryptix</div>
+                </a>
+                
+                {% if user.is_authenticated %}
+                <div class="user-section">
+                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                    <div class="user-name">
+                        <a href="{% url 'user_profile_view' user.username %}">{{ user.username }}</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Навігація -->
+            {% if user.is_authenticated %}
+            <nav class="nav-menu">
+                <a href="{% url 'feed' %}" class="nav-item">
+                    <span class="icon">📰</span>
+                    <span>Стрічка</span>
+                </a>
+                <a href="{% url 'users_list' %}" class="nav-item">
+                    <span class="icon">👥</span>
+                    <span>Користувачі</span>
+                </a>
+                <a href="{% url 'friends_list' %}" class="nav-item">
+                    <span class="icon">🤝</span>
+                    <span>Друзі</span>
+                </a>
+                <a href="{% url 'conversations_list' %}" class="nav-item">
+                    <span class="icon">💬</span>
+                    <span>Повідомлення</span>
+                </a>
+                <a href="{% url 'groups_list' %}" class="nav-item">
+                    <span class="icon">👨‍👩‍👧‍👦</span>
+                    <span>Групи</span>
+                </a>
+                <a href="{% url 'notifications_list' %}" class="nav-item">
+                    <span class="icon">🔔</span>
+                    <span>Сповіщення</span>
+                    {% if unread_notifications_count > 0 %}
+                    <span class="notification-badge">{{ unread_notifications_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'profile' %}" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    <span>Налаштування</span>
+                </a>
+                <a href="{% url 'logout' %}" class="nav-item logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <span class="icon">🚪</span>
+                    <span>Вийти</span>
+                </a>
+                <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
+                    {% csrf_token %}
+                </form>
+            </nav>
+            {% else %}
+            <nav class="nav-menu">
+                <a href="{% url 'login' %}" class="nav-item">
+                    <span class="icon">🔐</span>
+                    <span>Увійти</span>
+                </a>
+                <a href="{% url 'register' %}" class="nav-item">
+                    <span class="icon">📝</span>
+                    <span>Реєстрація</span>
+                </a>
+            </nav>
+            {% endif %}
+        </div>
+    </header>
     
-    <div class="container">
+    <main class="main-container">
         {% if messages %}
         <ul class="messages">
             {% for message in messages %}
@@ -163,6 +624,6 @@
         {% endif %}
         
         {% block content %}{% endblock %}
-    </div>
+    </main>
 </body>
 </html>

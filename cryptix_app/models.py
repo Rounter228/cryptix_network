@@ -213,3 +213,66 @@ class Review(models.Model):
     
     def __str__(self):
         return f'{self.reviewer.username} → {self.reviewed_user.username}: {self.rating}★'
+
+
+class Post(models.Model):
+    author = models.ForeignKey(User, related_name='posts', on_delete=models.CASCADE)
+    content = models.TextField()
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.author.username}: {self.content[:30]}'
+    
+    def likes_count(self):
+        return self.likes.count()
+    
+    def comments_count(self):
+        return self.comments.count()
+
+
+class PostLike(models.Model):
+    post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='liked_posts', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('post', 'user')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.user.username} лайкнув {self.post.id}'
+
+
+class PostComment(models.Model):
+    post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f'{self.author.username}: {self.content[:30]}'
+
+
+class News(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    image = models.ImageField(upload_to='news/', blank=True, null=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_pinned = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-is_pinned', '-created_at']
+        verbose_name_plural = 'News'
+    
+    def __str__(self):
+        return self.title

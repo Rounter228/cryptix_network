@@ -1,0 +1,40 @@
+{% extends 'cryptix_app/base.html' %}
+
+{% block title %}Мої пости{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Мої пости ({{ posts.count }})</h2>
+    <a href="{% url 'feed' %}">← Назад до стрічки</a>
+</div>
+
+{% for post in posts %}
+<div class="card">
+    <div style="display: flex; align-items: start; margin-bottom: 15px; justify-content: space-between;">
+        <div>
+            <strong>{{ user.username }}</strong>
+            <br>
+            <small style="color: #999;">{{ post.created_at|date:"d.m.Y H:i" }}</small>
+        </div>
+        <form method="post" action="{% url 'post_delete' post.id %}" style="margin: 0;" onsubmit="return confirm('Видалити пост?');">
+            {% csrf_token %}
+            <button type="submit" style="background: #f44336; padding: 5px 10px; font-size: 12px;">Видалити</button>
+        </form>
+    </div>
+    
+    <p style="margin-bottom: 15px; white-space: pre-wrap;">{{ post.content }}</p>
+    
+    {% if post.image %}
+    <img src="{{ post.image.url }}" alt="Post image" style="max-width: 100%; border-radius: 8px; margin-bottom: 15px;">
+    {% endif %}
+    
+    <div style="border-top: 1px solid #ddd; padding-top: 10px;">
+        <span style="color: #999;">👍 {{ post.likes_count }} • 💬 {{ post.comments_count }}</span>
+    </div>
+</div>
+{% empty %}
+<div class="card">
+    <p style="text-align: center; color: #666;">У вас ще немає постів</p>
+</div>
+{% endfor %}
+{% endblock %}
