@@ -6,7 +6,7 @@ from django.db.models import Q, Count
 from django.contrib import messages
 from django.utils import timezone
 from .forms import RegisterForm, UserUpdateForm, ProfileUpdateForm
-from .models import Profile, Friendship, Follow, Conversation, Message, Group, GroupMembership, GroupPost, GroupPostComment, Notification, Review
+from .models import Profile, Friendship, Follow, Conversation, Message, Group, GroupMembership, GroupPost, GroupPostComment, Notification, Review, Post, PostLike, PostComment, News
 from .utils import *
 
 
@@ -48,11 +48,32 @@ def profile(request):
 
 @login_required
 def home(request):
-    return render(request, 'cryptix_app/home.html')
+    news_list = News.objects.all()
+    
+    if request.method == 'POST' and request.user.is_superuser:
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+        image = request.FILES.get('image')
+        is_pinned = request.POST.get('is_pinned') == 'on'
+        
+        if title and content:
+            News.objects.create(
+                title=title,
+                content=content,
+                image=image,
+                author=request.user,
+                is_pinned=is_pinned
+            )
+            messages.success(request, 'Новину створено!')
+            return redirect('home')
+    
+    return render(request, 'cryptix_app/home.html', {
+        'news_list': news_list,
+        'is_admin': request.user.is_superuser
+    })
 
 
 # -- друзі та підписники --
-
 @login_required
 def users_list(request):
     query = request.GET.get('q', '')
@@ -523,3 +544,145 @@ def delete_review(request, review_id):
     review.delete()
     messages.success(request, 'Відгук видалено')
     return redirect('user_profile_view', username=review.reviewed_user.username)
+
+
+# -- стрічка новин
+@login_required
+def feed(request):
+    friends_ids = Friendship.objects.filter(
+        Q(from_user=request.user, status='accepted') |
+        Q(to_user=request.user, status='accepted')
+    ).values_list('from_user_id', 'to_user_id')
+    
+    friend_ids = set()
+    for from_id, to_id in friends_ids:
+        friend_ids.add(from_id if from_id != request.user.id else to_id)
+    
+    following_ids = Follow.objects.filter(follower=request.user).values_list('following_id', flat=True)
+    
+    all_user_ids = friend_ids.union(set(following_ids)).union({request.user.id})
+    
+    posts = Post.objects.filter(author_id__in=all_user_ids).select_related('author').prefetch_related('likes', 'comments')
+    
+    if request.method == 'POST' and 'post_content' in request.POST:
+        content = request.POST.get('post_content', '').strip()
+        image = request.FILES.get('post_image')
+        if content:
+            Post.objects.create(
+                author=request.user,
+                content=content,
+                image=image
+            )
+            messages.success(request, 'Пост створено!')
+            return redirect('feed')
+    
+    liked_posts_ids = PostLike.objects.filter(user=request.user).values_list('post_id', flat=True)
+    
+    return render(request, 'cryptix_app/feed.html', {
+        'posts': posts,
+        'liked_posts_ids': liked_posts_ids
+    })
+
+
+@login_required
+def post_like(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    
+    like, created = PostLike.objects.get_or_create(post=post, user=request.user)
+    
+    if not created:
+        like.delete()
+        messages.info(request, 'Лайк знято')
+    else:
+        messages.success(request, 'Лайк додано!')
+        if post.author != request.user:
+            create_notification(
+                recipient=post.author,
+                sender=request.user,
+                notification_type=Notification.COMMENT,
+                text=f'{request.user.username} лайкнув ваш пост',
+                link='/app/feed/'
+            )
+    
+    return redirect('feed')
+
+
+@login_required
+def post_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if content:
+            PostComment.objects.create(
+                post=post,
+                author=request.user,
+                content=content
+            )
+            messages.success(request, 'Коментар додано!')
+            
+            if post.author != request.user:
+                create_notification(
+                    recipient=post.author,
+                    sender=request.user,
+                    notification_type=Notification.COMMENT,
+                    text=f'{request.user.username} прокоментував ваш пост',
+                    link='/app/feed/'
+                )
+    
+    return redirect('feed')
+
+
+@login_required
+def post_delete(request, post_id):
+    post = get_object_or_404(Post, id=post_id, author=request.user)
+    post.delete()
+    messages.success(request, 'Пост видалено')
+    return redirect('feed')
+
+
+@login_required
+def my_posts(request):
+    posts = request.user.posts.all().prefetch_related('likes', 'comments')
+    liked_posts_ids = PostLike.objects.filter(user=request.user).values_list('post_id', flat=True)
+    
+    return render(request, 'cryptix_app/my_posts.html', {
+        'posts': posts,
+        'liked_posts_ids': liked_posts_ids
+    })
+
+
+# -- стрічка новин (для адміністраторів)
+@login_required
+def news_delete(request, news_id):
+    if not request.user.is_superuser:
+        messages.error(request, 'У вас немає доступу')
+        return redirect('home')
+    
+    news = get_object_or_404(News, id=news_id)
+    news.delete()
+    messages.success(request, 'Новину видалено')
+    return redirect('home')
+
+
+@login_required
+def news_edit(request, news_id):
+    if not request.user.is_superuser:
+        messages.error(request, 'У вас немає доступу')
+        return redirect('home')
+    
+    news = get_object_or_404(News, id=news_id)
+    
+    if request.method == 'POST':
+        news.title = request.POST.get('title', '').strip()
+        news.content = request.POST.get('content', '').strip()
+        news.is_pinned = request.POST.get('is_pinned') == 'on'
+        
+        if 'image' in request.FILES:
+            news.image = request.FILES['image']
+        
+        news.save()
+        messages.success(request, 'Новину оновлено!')
+        return redirect('home')
+    
+    return render(request, 'cryptix_app/news_edit.html', {'news': news})

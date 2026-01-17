@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import (Friendship, Follow, Conversation, Message, Group, 
-                     GroupMembership, GroupPost, GroupPostComment, Notification, Review)
+from .models import Friendship, Follow, Conversation, Message, Group, GroupMembership, GroupPost, GroupPostComment, Notification, Review, Post, PostLike, PostComment, News
+
 
 @admin.register(Friendship)
 class FriendshipAdmin(admin.ModelAdmin):
@@ -51,3 +51,26 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ['reviewer', 'reviewed_user', 'rating', 'created_at']
     list_filter = ['rating', 'created_at']
     search_fields = ['reviewer__username', 'reviewed_user__username', 'comment']
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ['author', 'content', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['content', 'author__username']
+
+@admin.register(PostLike)
+class PostLikeAdmin(admin.ModelAdmin):
+    list_display = ['user', 'post', 'created_at']
+    list_filter = ['created_at']
+
+@admin.register(PostComment)
+class PostCommentAdmin(admin.ModelAdmin):
+    list_display = ['author', 'post', 'content', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['content', 'author__username']
+
+@admin.register(News)
+class NewsAdmin(admin.ModelAdmin):
+    list_display = ['title', 'author', 'is_pinned', 'created_at']
+    list_filter = ['is_pinned', 'created_at']
+    search_fields = ['title', 'content']

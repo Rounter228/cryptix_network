@@ -49,4 +49,15 @@ urlpatterns = [
     # відгуки
     path('review/<str:username>/', views.leave_review, name='leave_review'),
     path('review/<int:review_id>/delete/', views.delete_review, name='delete_review'),
+
+    # стрічка новин
+    path('feed/', views.feed, name='feed'),
+    path('my-posts/', views.my_posts, name='my_posts'),
+    path('post/<int:post_id>/like/', views.post_like, name='post_like'),
+    path('post/<int:post_id>/comment/', views.post_comment, name='post_comment'),
+    path('post/<int:post_id>/delete/', views.post_delete, name='post_delete'),
+
+    # стрічка новин (адмін)
+    path('news/<int:news_id>/delete/', views.news_delete, name='news_delete'),
+    path('news/<int:news_id>/edit/', views.news_edit, name='news_edit'),
 ]
