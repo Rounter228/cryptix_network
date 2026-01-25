@@ -132,19 +132,36 @@ def send_friend_request(request, user_id):
 
 @login_required
 def accept_friend_request(request, friendship_id):
-    friendship = get_object_or_404(Friendship, id=friendship_id, to_user=request.user)
-    friendship.status = 'accepted'
-    friendship.save()
-    notify_friend_accept(friendship.from_user, request.user)
-    messages.success(request, f'Ви тепер друзі з {friendship.from_user.username}')
+    try:
+        friendship = Friendship.objects.get(
+            id=friendship_id, 
+            to_user=request.user, 
+            status='pending'
+        )
+        friendship.status = 'accepted'
+        friendship.save()
+        notify_friend_accept(friendship.from_user, request.user)
+        messages.success(request, f'Ви тепер друзі з {friendship.from_user.username}')
+    except Friendship.DoesNotExist:
+        messages.error(request, 'Цей запит на дружбу більше не існує або вже оброблений.')
+    
     return redirect('friend_requests')
 
 
 @login_required
 def reject_friend_request(request, friendship_id):
-    friendship = get_object_or_404(Friendship, id=friendship_id, to_user=request.user)
-    friendship.delete()
-    messages.success(request, 'Запит відхилено')
+    try:
+        friendship = Friendship.objects.get(
+            id=friendship_id, 
+            to_user=request.user, 
+            status='pending'
+        )
+        friendship.status = 'rejected'
+        friendship.save()
+        messages.success(request, f'Ви відхилили заявку від {friendship.from_user.username}')
+    except Friendship.DoesNotExist:
+        messages.error(request, 'Цей запит на дружбу більше не існує або вже оброблений.')
+    
     return redirect('friend_requests')
 
 

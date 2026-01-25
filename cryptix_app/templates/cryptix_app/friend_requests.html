@@ -6,25 +6,25 @@
 <div class="card">
     <h2>Заявки у друзі ({{ requests.count }})</h2>
     {% for req in requests %}
-    <div style="border-bottom: 1px solid #ddd; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+    <div style="border-bottom: 1px solid rgba(148, 163, 184, 0.2); padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <strong>{{ req.from_user.username }}</strong>
+            <strong style="color: #cbd5e1;">{{ req.from_user.username }}</strong>
             <br>
-            <small style="color: #666;">{{ req.created_at|date:"d.m.Y H:i" }}</small>
+            <small style="color: #94a3b8;">{{ req.created_at|date:"d.m.Y H:i" }}</small>
         </div>
         <div>
             <form method="post" action="{% url 'accept_friend_request' req.id %}" style="display: inline;">
                 {% csrf_token %}
-                <button type="submit" style="background: #42b72a;">Прийняти</button>
+                <button type="submit" class="btn-success" style="padding: 8px 16px; font-size: 13px;">Прийняти</button>
             </form>
             <form method="post" action="{% url 'reject_friend_request' req.id %}" style="display: inline;">
                 {% csrf_token %}
-                <button type="submit" style="background: #f44336;">Відхилити</button>
+                <button type="submit" class="btn-danger" style="padding: 8px 16px; font-size: 13px;">Відхилити</button>
             </form>
         </div>
     </div>
     {% empty %}
-    <p>Немає нових заявок</p>
+    <p style="color: #cbd5e1;">Немає нових заявок</p>
     {% endfor %}
 </div>
 {% endblock %}
