@@ -20,7 +20,6 @@
             line-height: 1.6;
         }
         
-        /* Шапка сайту */
         .header {
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -36,7 +35,6 @@
             padding: 0 20px;
         }
         
-        /* Верхня частина хедера з логотипом */
         .header-top {
             display: flex;
             align-items: center;
@@ -93,6 +91,14 @@
             font-size: 16px;
             color: white;
             border: 2px solid rgba(59, 130, 246, 0.3);
+            overflow: hidden;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0;
         }
         
         .user-name {
@@ -111,7 +117,6 @@
             color: #60a5fa;
         }
         
-        /* Навігація */
         .nav-menu {
             display: flex;
             gap: 4px;
@@ -181,14 +186,12 @@
             text-align: center;
         }
         
-        /* Основний контейнер */
         .main-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 30px 20px;
         }
         
-        /* Карточки */
         .card {
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             border-radius: 16px;
@@ -222,7 +225,6 @@
             color: #60a5fa;
         }
         
-        /* Кнопки */
         button, input[type="submit"], .btn {
             background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
@@ -247,7 +249,6 @@
             transform: translateY(0);
         }
         
-        /* Форми */
         input, textarea, select {
             width: 100%;
             padding: 12px 16px;
@@ -272,7 +273,6 @@
             color: #64748b;
         }
         
-        /* Заголовки */
         h1 {
             font-size: 32px;
             color: #f1f5f9;
@@ -294,7 +294,6 @@
             font-weight: 600;
         }
         
-        /* Посилання */
         a {
             color: #3b82f6;
             text-decoration: none;
@@ -305,7 +304,6 @@
             color: #60a5fa;
         }
         
-        /* Повідомлення */
         .messages {
             list-style: none;
             margin-bottom: 24px;
@@ -350,7 +348,6 @@
             border-left-color: #3b82f6;
         }
         
-        /* Лайки */
         .like-button {
             background: none;
             border: none;
@@ -371,7 +368,6 @@
             color: #3b82f6;
         }
         
-        /* Коментарі */
         .comment-item {
             background: rgba(15, 23, 42, 0.5);
             padding: 14px;
@@ -381,7 +377,6 @@
             color: #cbd5e1;
         }
         
-        /* Сповіщення */
         .notification-item {
             padding: 16px 0;
             border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -396,20 +391,17 @@
             border-left: 3px solid #3b82f6;
         }
         
-        /* Закріплені новини */
         .pinned-news {
             border-left: 4px solid #f59e0b;
             background: rgba(245, 158, 11, 0.1);
         }
         
-        /* Роздільники */
         hr {
             border: none;
             border-top: 1px solid rgba(148, 163, 184, 0.1);
             margin: 24px 0;
         }
         
-        /* Рейтинг зірками */
         .star-rating {
             font-size: 24px;
             color: #475569;
@@ -426,7 +418,6 @@
             color: #f59e0b;
         }
         
-        /* Додаткові стилі для кнопок */
         .btn-secondary {
             background: linear-gradient(135deg, #64748b, #475569);
             box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
@@ -454,13 +445,11 @@
             background: linear-gradient(135deg, #16a34a, #15803d);
         }
         
-        /* Зображення */
         img {
             max-width: 100%;
             border-radius: 12px;
         }
         
-        /* Скролбар */
         ::-webkit-scrollbar {
             width: 10px;
             height: 10px;
@@ -479,7 +468,6 @@
             background: #2563eb;
         }
         
-        /* Адаптивність */
         @media (max-width: 768px) {
             .header-top {
                 flex-direction: column;
@@ -522,7 +510,6 @@
             }
         }
         
-        /* Auth pages special styling */
         .auth-container {
             max-width: 450px;
             margin: 60px auto;
@@ -540,7 +527,6 @@
 <body>
     <header class="header">
         <div class="header-container">
-            <!-- Верхня частина з логотипом -->
             <div class="header-top">
                 <a href="{% url 'home' %}" class="logo-section">
                     <img src="/media/logo.png" alt="Cryptix" class="logo-img">
@@ -549,7 +535,13 @@
                 
                 {% if user.is_authenticated %}
                 <div class="user-section">
-                    <div class="user-avatar">{{ user.username|first|upper }}</div>
+                    <div class="user-avatar">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+                        {% else %}
+                            {{ user.username|first|upper }}
+                        {% endif %}
+                    </div>
                     <div class="user-name">
                         <a href="{% url 'user_profile_view' user.username %}">{{ user.username }}</a>
                     </div>
@@ -557,7 +549,6 @@
                 {% endif %}
             </div>
             
-            <!-- Навігація -->
             {% if user.is_authenticated %}
             <nav class="nav-menu">
                 <a href="{% url 'feed' %}" class="nav-item">
